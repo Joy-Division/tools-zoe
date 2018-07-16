@@ -1,0 +1,12 @@
+# Binary Output
+#-------------------------
+*.o
+*.a
+*.obj
+*.lib
+*.exe
+*.elf
+
+# Project Config
+#-------------------------
+.vscode
