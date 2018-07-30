@@ -7,7 +7,8 @@ Tools for working with files from Zone of the Enders
 
 # Building and debugging
 
-Building should only require a reasonably recent c compiler (e.g. GCC) and make, any required libraries are currently bundled and may be exchanged for submodules in the future (if possible)
+Building should only require a reasonably recent c compiler (e.g. GCC) and make, any required libraries are currently bundled and may be exchanged for submodules in the future (if possible).
+
 The following libraries are currently bundled with the project and will be exchanged for git submodules in the future:
 - [lodepng](https://github.com/lvandeve/lodepng)
 
