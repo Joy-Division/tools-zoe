@@ -1,5 +1,4 @@
-# VividTransparency
-Factory
+# Vivid Transparency
 
 Tools for working with files from Zone of the Enders
 
