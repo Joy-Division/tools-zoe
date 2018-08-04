@@ -21,7 +21,7 @@ Useful things for debugging are:
 
 Additionally for comparison with actual game output:
 - recordings of gameplay 
-- working emulator setupto play the game on your system
+- working emulator setup to play the game on your system
 
 **Note:** Code quality and style may vary wildly between different code files. Feel free to propose a style to be used (but do not count on it).
 Minimal error checking is in place, but assume that any unexpected input will result in your system eating your cat.
