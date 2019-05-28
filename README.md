@@ -29,7 +29,7 @@ Minimal error checking is in place, but assume that any unexpected input will re
 # Overview of included tools
 
 ## dat-extract
-Unpacks the ZOE.DAT file found in the root of the disc to allow easy access to its individual files (for the TGS2000 demo, see dat-extract_tgs).
+Unpacks the ZOE.DAT file found in the root of the disc to allow easy access to its individual files. This also supports the TGS2000 demo, simply run with ``dat-extract [DAT] [any additional argument]`` to enable compatibility for it (note that mixing archives and modes will break things).
 
 ## dat-extract_tgs
 Unpacks the ZOE.DAT file found in the TGS2000 demo of Zone of the Enders, lightly modified from dat-extract to account for different offsets found in the file (each offset is increased by 0x18 sectors).

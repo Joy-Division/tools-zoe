@@ -22,6 +22,24 @@
 #define createDirectory(dirname) mkdir(dirname, 0777)
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+
+#define FILENAMELENGTH 16
+#define DIRNAMELENGTH 8
+#define BLOCKSIZE 0x800
+
+#ifdef _WIN32
+#include <direct.h>
+#define createDirectory(dirname) mkdir(dirname)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define createDirectory(dirname) mkdir(dirname, 0777)
+#endif
+
 int writeFile( FILE *input, int length, FILE *output ) {
 	unsigned char dataBuffer[1024];
 	unsigned int bytesLeft = length;
@@ -74,59 +92,74 @@ char completeName[48] = { 0 };
 int dirlevel = 0;
 char rootchar[4] = "ZOE";
 
-void processDirectoryListing( FILE *f, tocDirectoryEntry entry ) {
-	memset( completeName, 0, 48 );
+void processDirectoryListing( FILE *f, tocDirectoryEntry entry, char *curpath, unsigned int tgsfix ) {
 	tocFileEntry file;
-	int i;
+	unsigned int i;
 	FILE *o;
-	memcpy( directoryState[dirlevel], entry.name, DIRNAMELENGTH );
-	sprintf( completeName, "%s/%s/%s/%s", directoryState[0], directoryState[1], directoryState[2], directoryState[3] );
-	printf("Current directory: %s\n", completeName );
-	createDirectory( completeName );
+	char *filepath = NULL;
+	
+	filepath = malloc(strlen(curpath)+1+strlen(entry.name)+1+16+1); // max filename length is 16
+	sprintf(filepath, "%s/%s", curpath, entry.name);
+	
+	printf("processDirectoryListing - Current directory: %s at %08lx\n", filepath, ftell(f) );
+	createDirectory( filepath );
 	for( i = 0; i < entry.subFileCount; i++ ) {
 		fseek( f, (entry.subFileOffset*BLOCKSIZE)+(32*i), SEEK_SET );
 		fread( &file, sizeof(file), 1, f );
-		memcpy( directoryState[3], file.name, FILENAMELENGTH );
-		sprintf( completeName, "%s/%s/%s/%s", directoryState[0], directoryState[1], directoryState[2], directoryState[3] );
-		printf("Current file: %s\n", completeName );
-		if( !(o = fopen( completeName, "wb" ))) {
-			printf("Couldnt open file %s\n", completeName);
+		if(!file.name[0]) {
+			printf("skipping invalid toc entry %d of %d\n", i+1, entry.subFileCount);
+			continue;
+		}
+		if( tgsfix ) file.fileOffset -= 0x18;
+		sprintf(filepath, "%s/%s/%s", curpath, entry.name, file.name);
+		printf("Current file: %s at %08x\n", filepath, file.fileOffset*BLOCKSIZE );
+		if( !(o = fopen( filepath, "wb" ))) {
+			printf("Couldnt open file %s\n", filepath);
 			return;
 		}
 		fseek( f, file.fileOffset*BLOCKSIZE, SEEK_SET );
 		writeFile( f, file.fileSize, o );
 		fclose(o);
 	}
-	memset( directoryState[3], 0, 16 );
+	free(filepath);
 	return;
 }
 	
-void processDirectory( FILE *f, tocDirectoryEntry entry ) {
+void processDirectory( FILE *f, tocDirectoryEntry entry, char *curpath, unsigned int tgsfix ) {
 	memset( completeName, 0, 48 );
 	tocDirectoryEntry workentry;
-	int i;
+	unsigned int i;
+	char *newpath = NULL;
 	
-	if( dirlevel == 0 ) memcpy( directoryState[dirlevel], rootchar, 4 );
-	else memcpy( directoryState[dirlevel], entry.name, DIRNAMELENGTH );
-	sprintf( completeName, "%s/%s/%s/%s", directoryState[0], directoryState[1], directoryState[2], directoryState[3] );
-	printf("Current directory: %s\n", completeName );
-	createDirectory( completeName );
+	if(!curpath) {
+		newpath = malloc(sizeof("ZOE")+1);
+		sprintf(newpath, "ZOE");
+	}
+	else {
+		newpath = malloc(strlen(curpath)+1+strlen(entry.name)+1);
+		sprintf(newpath, "%s/%s", curpath, entry.name);
+	}
+	
+	printf("processDirectory - Current directory: %s at %08lx\n", newpath, ftell(f) );
+	createDirectory( newpath );
 	
 	for( i = 0; i < entry.subDirCount; i++ ) {
 		fseek( f, entry.subDirOffset+(i*32), SEEK_SET );
 		fread( &workentry, sizeof(workentry), 1, f );
-		dirlevel++;
-		if( workentry.subDirCount ) processDirectory( f, workentry );
-		else processDirectoryListing( f, workentry );
-		memset( directoryState[dirlevel], 0, 16 );
-		dirlevel--;
+		if( tgsfix && workentry.subFileOffset ) workentry.subFileOffset -= 0x18;
+		if( workentry.subDirCount ) processDirectory( f, workentry, newpath, tgsfix );
+		else processDirectoryListing( f, workentry, newpath, tgsfix );
 	}
+	
+	free(newpath);
 	return;
 }
 
 int main( int argc, char **argv ) {
 	
 	tocDirectoryEntry workdir;
+	unsigned int tgsfix = 0;
+	FILE *f;
 	
 	memset( workdir.name, 0, DIRNAMELENGTH );
 	
@@ -134,8 +167,8 @@ int main( int argc, char **argv ) {
 		printf("Not enough args!\nUse: %s DAT-file\n", argv[0]);
 		return 1;
 	}
+	if( argc == 3 ) tgsfix = 1;
 	
-	FILE *f;
 	
 	if( !(f = fopen( argv[1], "rb" ))) {
 		printf("Couldnt open file %s\n", argv[1]);
@@ -145,7 +178,7 @@ int main( int argc, char **argv ) {
 	
 	fread( &workdir, sizeof(workdir), 1, f );
 	
-	processDirectory( f, workdir );
+	processDirectory( f, workdir, NULL, tgsfix );
 	
 	printf("Done.\n");
 	

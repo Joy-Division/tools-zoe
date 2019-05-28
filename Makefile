@@ -3,7 +3,7 @@ KOJIMASOUND = kojimasound/kojimasound.o
 
 
 all: archive video texture sound test
-archive: dat-extract.elf dat-extract_tgs.elf pak-extract.elf
+archive: dat-extract.elf pak-extract.elf
 video: pss-demux.elf subtitle-convert.elf
 texture: tex-to_image.elf
 sound: sdx-extract.elf wvx-extract.elf mdx-splitter.elf efx-splitter.elf mdx-parser.elf
