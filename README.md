@@ -35,9 +35,6 @@ For unpacking STAGE.DAT from ZoE2, check [ArmsDepot](https://github.com/Joy-Divi
 ## dat-extract_tgs
 Unpacks the ZOE.DAT file found in the TGS2000 demo of Zone of the Enders, lightly modified from dat-extract to account for different offsets found in the file (each offset is increased by 0x18 sectors).
 
-## dat-patch_tgs
-Modifies the offsets of the TGS2000 demo to remove the 0x18 increment (**Warning:** this actively modifies the passed file, ensure you have backups!).
-
 ## efx-splitter
 Dumps the sections found in efx files produced by sdx-extract and splits up the sequence block into individual sequences.
 

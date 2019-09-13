@@ -2,12 +2,11 @@ LODEPNG = lodepng/lodepng.o
 KOJIMASOUND = kojimasound/kojimasound.o
 
 
-all: archive video texture sound test
+all: archive video texture sound
 archive: dat-extract.exe pak-extract.exe
 video: pss-demux.exe subtitle-convert.exe
 texture: tex-to_image.exe
 sound: sdx-extract.exe wvx-extract.exe mdx-splitter.exe efx-splitter.exe mdx-parser.exe
-test: dat-patch_tgs.exe
 
 tex-to_image.exe: $(LODEPNG) tex-to_image.c
 	$(CC) -Wall -g -o $@ $^
