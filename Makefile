@@ -49,45 +49,57 @@ KOJIMASOUND = kojimasound/kojimasound.o
 # Targets
 #---------------------------------------------------------------------------#
 
+OPT_STATIC_ICONV =
+PROC_APPEND_EXT  = mv $@ $@.elf
+
 ifeq ($(OS),Windows_NT)
-ICONV_STATIC = -Wl,-Bstatic -liconv
-else
-ICONV_STATIC =
+OPT_STATIC_ICONV = -Wl,-Bstatic -liconv
+PROC_APPEND_EXT  =
 endif
 
 # --- archive ---
 dat-extract: dat-extract.c
 	$(CC) $(GCC_ARGS) -o $@ $<
+	$(PROC_APPEND_EXT)
 
 pak-extract: pak-extract.c
 	$(CC) $(GCC_ARGS) -o $@ $<
+	$(PROC_APPEND_EXT)
 
 # --- video ---
 pss-demux: pss-demux.c
 	$(CC) $(GCC_ARGS) -o $@ $<
+	$(PROC_APPEND_EXT)
 
 subtitle-convert: subtitle-convert.c
-	$(CC) $(GCC_ARGS) -o $@ $< $(ICONV_STATIC)
+	$(CC) $(GCC_ARGS) -o $@ $< $(OPT_STATIC_ICONV)
+	$(PROC_APPEND_EXT)
 
 # --- texture ---
 tex-to_image: $(LODEPNG) tex-to_image.c
 	$(CC) $(GCC_ARGS) -o $@ $^
+	$(PROC_APPEND_EXT)
 
 # --- sound	 ---
 sdx-extract: sdx-extract.c
 	$(CC) $(GCC_ARGS) -o $@ $<
+	$(PROC_APPEND_EXT)
 
 wvx-extract: $(KOJIMASOUND) wvx-extract.c
 	$(CC) $(GCC_ARGS) -o $@ $^
+	$(PROC_APPEND_EXT)
 	
 mdx-splitter: $(KOJIMASOUND) mdx-splitter.c
 	$(CC) $(GCC_ARGS) -o $@ $^
+	$(PROC_APPEND_EXT)
 	
 efx-splitter: $(KOJIMASOUND) efx-splitter.c
 	$(CC) $(GCC_ARGS) -o $@ $^
+	$(PROC_APPEND_EXT)
 	
 mdx-parser: $(KOJIMASOUND) mdx-parser.c
 	$(CC) $(GCC_ARGS) -o $@ $^
+	$(PROC_APPEND_EXT)
 
 #---------------------------------------------------------------------------#
 
@@ -101,14 +113,4 @@ clean_obj:
 	-rm $(KOJIMASOUND)
 
 clean_exe:
-	-rm *.exe
-	-rm dat-extract
-	-rm pak-extract
-	-rm pss-demux
-	-rm subtitle-convert
-	-rm tex-to_image
-	-rm sdx-extract
-	-rm wvx-extract
-	-rm mdx-splitter
-	-rm efx-splitter
-	-rm mdx-parser
+	-rm *.exe *.elf
