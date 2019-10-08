@@ -50,9 +50,9 @@ KOJIMASOUND = kojimasound/kojimasound.o
 #---------------------------------------------------------------------------#
 
 ifeq ($(OS),Windows_NT)
-	ICONV_STATIC = -Wl,-Bstatic -liconv
+ICONV_STATIC = -Wl,-Bstatic -liconv
 else
-	ICONV_STATIC =
+ICONV_STATIC =
 endif
 
 # --- archive ---
