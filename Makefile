@@ -58,7 +58,7 @@ pak-extract: pak-extract.c
 #------------------------------------------------------------------------------
 
 pss-demux: pss-demux.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 subtitle-convert: subtitle-convert.c
 ifeq ($(OS),Windows_NT)
