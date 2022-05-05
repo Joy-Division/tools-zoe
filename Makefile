@@ -1,120 +1,104 @@
-#
-# Makefile for "Vivid Transparency"
-# ZONE OF THE ENDERS Toolbox
-#
+##
+##	Makefile for "Vivid Transparency"
+##	( ZONE OF THE ENDERS Toolbox )
+##
 
-# Windows (MinGW)
-GCC_WIN32 = i686-w64-mingw32-gcc
-GXX_WIN32 = i686-w64-mingw32-g++
-GCC_WIN64 = x86_64-w64-mingw32-gcc
-GXX_WIN64 = x86_64-w64-mingw32-g++
+###############################################################################
 
-#---------------------------------------------------------------------------#
+OLEVEL                  ?= 2
+GLEVEL                  ?=
 
-CFLAGS = -Wall -g
+CFLAGS                  += -g$(GLEVEL)
+CFLAGS                  += -O$(OLEVEL)
+CFLAGS                  += -Wall -Wno-comment
 
-all:\
-	archive \
-	video \
-	texture \
-	sound
+CXXFLAGS                := $(CFLAGS)
 
-archive:\
-	dat-extract \
-	pak-extract
+LDFLAGS                 += -Wl,-Map,$(basename $@).map
 
-video:\
-	pss-demux \
-	subtitle-convert
+###############################################################################
+.PHONY: default all
 
-texture:\
-	tex-to_image
+default: all
 
-sound:\
-	sdx-extract \
-	wvx-extract \
-	mdx-splitter \
-	efx-splitter \
-	mdx-parser
+TARGETS                 :=\
+                        dat-extract      \
+                        pak-extract      \
+                        pss-demux        \
+                        subtitle-convert \
+                        tex-to_image     \
+                        sdx-extract      \
+                        wvx-extract      \
+                        mdx-splitter     \
+                        efx-splitter     \
+                        mdx-parser
 
-#---------------------------------------------------------------------------#
-# Objects
-#---------------------------------------------------------------------------#
+all: $(TARGETS)
 
-LODEPNG     = lodepng/lodepng.o
-KOJIMASOUND = kojimasound/kojimasound.o
+###############################################################################
+
+LODEPNG.O               := lodepng/lodepng.o
+KOJIMASOUND.O           := kojimasound/kojimasound.o
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-#---------------------------------------------------------------------------#
-# Targets
-#---------------------------------------------------------------------------#
+#------------------------------------------------------------------------------
+# ARCHIVE
+#------------------------------------------------------------------------------
 
-OPT_STATIC_ICONV =
-PROC_APPEND_EXT  = mv $@ $@.elf
-
-ifeq ($(OS),Windows_NT)
-OPT_STATIC_ICONV = -Wl,-Bstatic -liconv
-PROC_APPEND_EXT  =
-endif
-
-# --- archive ---
 dat-extract: dat-extract.c
-	$(CC) $(CFLAGS) -o $@ $<
-	$(PROC_APPEND_EXT)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 pak-extract: pak-extract.c
-	$(CC) $(CFLAGS) -o $@ $<
-	$(PROC_APPEND_EXT)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
-# --- video ---
+#------------------------------------------------------------------------------
+# STREAM
+#------------------------------------------------------------------------------
+
 pss-demux: pss-demux.c
 	$(CC) $(CFLAGS) -o $@ $<
-	$(PROC_APPEND_EXT)
 
 subtitle-convert: subtitle-convert.c
-	$(CC) $(CFLAGS) -o $@ $< $(OPT_STATIC_ICONV)
-	$(PROC_APPEND_EXT)
+ifeq ($(OS),Windows_NT)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -Wl,-Bstatic -liconv
+else
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+endif
 
-# --- texture ---
-tex-to_image: $(LODEPNG) tex-to_image.c
-	$(CC) $(CFLAGS) -o $@ $^
-	$(PROC_APPEND_EXT)
+#------------------------------------------------------------------------------
+# TEXTURE
+#------------------------------------------------------------------------------
 
-# --- sound	 ---
+tex-to_image: $(LODEPNG.O) tex-to_image.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+#------------------------------------------------------------------------------
+# SOUND
+#------------------------------------------------------------------------------
+
 sdx-extract: sdx-extract.c
-	$(CC) $(CFLAGS) -o $@ $<
-	$(PROC_APPEND_EXT)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
-wvx-extract: $(KOJIMASOUND) wvx-extract.c
-	$(CC) $(CFLAGS) -o $@ $^
-	$(PROC_APPEND_EXT)
-	
-mdx-splitter: $(KOJIMASOUND) mdx-splitter.c
-	$(CC) $(CFLAGS) -o $@ $^
-	$(PROC_APPEND_EXT)
-	
-efx-splitter: $(KOJIMASOUND) efx-splitter.c
-	$(CC) $(CFLAGS) -o $@ $^
-	$(PROC_APPEND_EXT)
-	
-mdx-parser: $(KOJIMASOUND) mdx-parser.c
-	$(CC) $(CFLAGS) -o $@ $^
-	$(PROC_APPEND_EXT)
+wvx-extract: $(KOJIMASOUND.O) wvx-extract.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-#---------------------------------------------------------------------------#
-# Cleanup
-#---------------------------------------------------------------------------#
+mdx-splitter: $(KOJIMASOUND.O) mdx-splitter.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-clean:\
-	clean_obj \
-	clean_exe
+efx-splitter: $(KOJIMASOUND.O) efx-splitter.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-clean_obj:
-	-rm *.o
-	-rm $(LODEPNG)
-	-rm $(KOJIMASOUND)
+mdx-parser: $(KOJIMASOUND.O) mdx-parser.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-clean_exe:
-	-rm *.exe *.elf
+###############################################################################
+.PHONY: clean
+
+clean:
+	$(RM) *.o
+	$(RM) *.map
+	$(RM) $(LODEPNG.O)
+	$(RM) $(KOJIMASOUND.O)
+	$(RM) $(TARGETS)
